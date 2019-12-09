@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Calendar</title>
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" href="style.css">
+
+	<!--JavaScript links-->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="helperFunctions.js"></script>
+</head>
+
+<body>
+	<!--Prevent logout-->
+	<?php
+			session.start();
+			if(isset($_SERVER['HTTP_REFERER']))
+			{
+				$page = $_SERVER['PHP_SELF'];
+			}
+	?>
+	<!--Display when not logged in-->
+	<!--The head bar of the calendar page-->
+	<div class="header">
+		<div id="loginAttempt" class="before">
+			<p>Login:</p>
+			<label>Username: </label><input type="text" name="username" id="username" required><br>
+			<label>Password: </label><input type="password" name="password" id="password" required><br>
+			<button id="loginevt">Log In</button>
+		</div>
+		<div class="after">
+			<p>Welcome:</p>
+			<label>Username:<br></label><a id="loggedUser"></a><br>
+			<button id="logoutBtn">Log Out</button>
+		</div>
+		<h1>Calendar</h1>
+		<div id="newUser" class="before">
+			<p>Register:</p>
+			<label>Username: </label><input type="text" name="new_user" id="new_user" required><br>
+			<label>Password: </label><input type="password" name="new_password" id="new_password" required><br>
+			<button id="register">Register</button>
+		</div>
+	</div>
+
+	<!--The content of the calendar-->
+	<div class="content">
+		<div class="after">
+			<div id="event_content">
+				<p>Add event:</p>
+				<label>Event: </label><input type="text" name="new_event" id="new_event" required><br>
+				<label>Date(yyyy-mm-dd): </label><input type="text" name="new_date" id="new_date" required><br>
+				<label>Time(HH:MM:SS): </label><input type="text" name="new_time" id="new_time" required><br>
+				<button id="addEvent">Add</button>
+			</div>
+			<!--Events-->
+			<div id="view_event">
+				Event:<div id="event_title"></div><br>
+				Date:<div id="event_date"></div><br>
+				Time:<div id="event_time"></div><br>
+				<button id="deleteBtn">Delete</button>
+				<button id="share">Share</button>
+			</div>
+			<div id="edit_form">
+				<label>Edit Event:</label>
+				<label>Title: </label><br><input type="text" name="edit_title" id="edit_title"><br>
+				<label>Date: (yyyy-mm-dd) </label><br><input type="text" name="edit_date" id="edit_date"><br>
+				<label>Time: (hh:mm:ss) </label><br><input type="text" name="edit_time" id="edit_time"><br>
+				<button id="editBtn">Edit</button>
+			</div>
+		</div>
+		<div class="calendar">
+			<div class="calHeader">
+				<div id="preevt">
+					<button id="prev_month_evt">Previous</button>
+				</div>
+				<div id="month"></div>
+				<div id="nextevt">
+					<button id="next_month_evt">Next</button>
+				</div>
+			</div>
+			<div id="days">
+				<table id="calendarTable">
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<!-- CSFR token hidden when a user logged in -->
+	<input id="user_token" type="hidden" value="">
+
+	<!--Script-->
+	<script>
+		/*$(document).ready(function(){
+		setTimeout(function(){
+				$.get("check.php", function(data){
+				if(data==0) window.location.href="logout.php";
+				});
+			},1*60*1000);
+		});*/
+		//Display the days for each month
+		var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+		var currentMonth = new Month(2019, 9); // October
+		document.getElementById("month").innerHTML = String(months[currentMonth.month] + " " + currentMonth.year);
+
+		//Update the next month
+		document.getElementById("next_month_evt").addEventListener("click", function (event) {
+			currentMonth = currentMonth.nextMonth();
+			document.getElementById("month").innerHTML = String(months[currentMonth.month] + " " + currentMonth.year);
+			updateCalendar();
+		}, false); // Update the calendar whenever the buttons are clicked
+
+		//Update the previous month
+		document.getElementById("prev_month_evt").addEventListener("click", function (event) {
+			currentMonth = currentMonth.prevMonth();
+			document.getElementById("month").innerHTML = String(months[currentMonth.month] + " " + currentMonth.year);
+			updateCalendar();
+		}, false); // Update the calendar whenever the buttons are clicked
+
+		updateCalendar();
+		//Update calendar function
+		function updateCalendar() {
+			$("#view_event").hide();
+			$("#edit_form").hide();
+			var weeks = currentMonth.getWeeks();
+			document.getElementById("calendarTable").innerHTML = "";
+			var th = document.createElement("thead");
+			document.getElementById("calendarTable").appendChild(th);
+			var tr = document.createElement("tr");
+			th.appendChild(tr);
+			//Append the table with header
+			for (var i = 0; i < 7; i++) {
+				var weekDay = document.createElement("th");
+				if (i == 0) {
+					weekDay.appendChild(document.createTextNode("Sunday"));
+				}
+				if (i == 1) {
+					weekDay.appendChild(document.createTextNode("Monday"));
+				}
+				if (i == 2) {
+					weekDay.appendChild(document.createTextNode("Tuesday"));
+				}
+				if (i == 3) {
+					weekDay.appendChild(document.createTextNode("Wednesday"));
+				}
+				if (i == 4) {
+					weekDay.appendChild(document.createTextNode("Thursday"));
+				}
+				if (i == 5) {
+					weekDay.appendChild(document.createTextNode("Friday"));
+				}
+				if (i == 6) {
+					weekDay.appendChild(document.createTextNode("Saturday"));
+				}
+				tr.appendChild(weekDay);
+				weekDay.setAttribute("scope", "col")
+			}
+
+			var date = 1;
+			for (var w in weeks) {
+				//Instances
+				var days = weeks[w].getDates();
+				var row = document.createElement("tr");
+				//Create a new row for each week
+				document.getElementById("calendarTable").appendChild(row);
+				for (var d in days) {
+					var cell = document.createElement("td");
+					row.appendChild(cell);
+					var div = document.createElement("div");
+					cell.appendChild(div);
+					var dateText = document.createElement("a");
+					div.appendChild(dateText);
+					if (days[d].getMonth() == currentMonth.month) {
+						div.setAttribute("id", date);
+						dateText.appendChild(document.createTextNode(days[d].toISOString().substring(8, 10)));//Show only two digits
+						date++;
+					}
+				}
+			}
+
+			//check to see if a user is loggedIn
+			if (document.getElementById('user_token').value === "") {
+				$(".after").hide();
+				$(".before").show();
+				document.getElementById('user_token').value = "";
+			}
+			else {
+				$(".after").show();
+				$(".before").hide();
+				getEvents(currentMonth);
+			}
+		}
+
+		//login
+		function loginAjax(event) {
+			var username = document.getElementById("username").value;
+			var password = document.getElementById("password").value;
+			var data = "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password);
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.open("POST", "http://ec2-18-209-14-106.compute-1.amazonaws.com/~zxun/module5_group/login_ajax.phplogin_ajax.php", true);
+			xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			xmlHttp.addEventListener("load", function (event) {
+				var jsonData = JSON.parse(event.target.responseText);
+				if (jsonData.success) {
+					console.log("You've been logged in!");
+					document.getElementById('user_token').value = jsonData.token;
+					console.log(jsonData.token);
+					console.log(document.getElementById('user_token').value);
+					document.getElementById("loggedUser").innerHTML = " " + username;
+					updateCalendar();
+				} else {
+					alert("You were not logged in. " + jsonData.message);
+				}
+			}, false);
+			xmlHttp.send(data);
+		}
+		document.getElementById("loginevt").addEventListener("click", loginAjax, false);
+
+		//register
+		function registerAjax(event) {
+			var new_user = document.getElementById("new_user").value;
+			var password = document.getElementById("new_password").value;
+			var data = "new_user=" + encodeURIComponent(new_user) + "&new_password=" + encodeURIComponent(password);
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.open("POST", "register_ajax.php", true);
+			xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			xmlHttp.addEventListener("load", function (event) {
+				var jsonData = JSON.parse(event.target.responseText);
+				if (jsonData.success) {
+					alert("Registred!");
+					addUniversalEvents();
+				}
+				else {
+					alert("Register failed: " + jsonData.message);
+				}
+			}, false);
+			xmlHttp.send(data);
+		}
+		document.getElementById("register").addEventListener("click", registerAjax, false);
+
+		//logout
+		function logoutAjax(event) {
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.open("POST", "logout.php", true);
+			xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			xmlHttp.send();
+
+			//clear all the inputs
+			var inputs = document.getElementsByTagName('input');
+			for (var i = 0; i < inputs.length; i++) {
+				inputs[i].value = "";
+			}
+			updateCalendar();
+		}
+		document.getElementById("logoutBtn").addEventListener("click", logoutAjax, false);
+
+		//Check the date format
+		//Citation: https://stackoverflow.com/questions/18758772/how-do-i-validate-a-date-in-this-format-yyyy-mm-dd-using-jquery
+		function checkDate(dateString) {
+			var regEx = /^\d{4}-\d{2}-\d{2}$/;
+			if (!dateString.match(regEx)) return false;  // Invalid format
+			var d = new Date(dateString);
+			var dNum = d.getTime();
+			if (!dNum && dNum !== 0) return false; // NaN value, Invalid date
+			return d.toISOString().slice(0, 10) === dateString;
+		}
+
+		//A function to display the current month's event
+		function getEvents(currentMonth) {
+			var events;
+			var data = "month=" + encodeURIComponent(currentMonth.month) + "&year=" + encodeURIComponent(currentMonth.year);
+
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.open("POST", "getEvents.php", true);
+			xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			xmlHttp.addEventListener("load", function (event) {
+				console.log(event.target.responseText);
+				events = JSON.parse(event.target.responseText);
+				console.log(events);
+				//add the events
+				for (var i in events) {
+					//console.log("hello");
+					//display the event on the calendar via a text node
+					var evt = document.createElement("BUTTON");
+					evt.setAttribute('date', new Date(currentMonth.year, currentMonth.month, events[i].day));
+					evt.setAttribute('time', events[i].time);
+					evt.setAttribute('title', events[i].title);
+					evt.setAttribute('event_id', events[i].event_id);
+					evt.className = "eventbutton";
+					evt.innerHTML = events[i].title;
+
+					//Add event listener to the button
+					evt.addEventListener("click", viewEventAjax, false);
+					//console.log(String(evt.title));
+					//console.log(evt.getAttribute('time'));
+					//console.log(evt.getAttribute('date'));
+					document.getElementById(String(events[i].day)).appendChild(evt);
+				}
+			}, false);
+			xmlHttp.send(data);
+		}
+
+		//Add event
+		function addEventAjax(event) {
+			//Define the instances
+			var new_event = document.getElementById("new_event").value;
+			var new_date = document.getElementById("new_date").value;
+			var new_time = document.getElementById("new_time").value;
+			var date_string = String(new_date);
+
+			//Check if the date is the right format
+			if (!checkDate(date_string)) {
+				alert("Wrong date format, try again!");
+				return;
+			}
+
+			//Citation: https://www.w3schools.com/js/js_date_methods.asp
+			var real_date = (new Date(date_string)).deltaDays(1);
+			console.log(document.getElementById('user_token').value);
+			var data = "token=" + encodeURIComponent(document.getElementById('user_token').value) + "&new_event=" + encodeURIComponent(new_event)
+				+ "&year=" + encodeURIComponent(real_date.getFullYear()) + "&month=" + encodeURIComponent(real_date.getMonth() + 1) + "&day=" + encodeURIComponent(real_date.getDate())
+				+ "&new_time=" + encodeURIComponent(new_time) + "&new_date=" + encodeURIComponent(new_date);
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.open("POST", "addEvent.php", true);
+			xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			xmlHttp.addEventListener("load", function (event) {
+				var jsonData = JSON.parse(event.target.responseText);
+				if (jsonData.success) {
+					console.log("Event added!");
+					alert("Event added!");
+					updateCalendar();
+				}
+				else {
+					alert("Add event failed: " + jsonData.message);
+				}
+			}, false);
+			xmlHttp.send(data);
+		}
+		document.getElementById("addEvent").addEventListener("click", addEventAjax, false);
+
+		//View event
+		function viewEventAjax(event) {
+			$("#view_event").show();
+			$("#edit_form").show();
+			var event_title = event.target.title;
+			var event_date = new Date(event.target.getAttribute('date'));
+			var event_time = event.target.getAttribute('time');
+			var event_id = event.target.getAttribute('event_id');
+			//var dateString = event_date.getDate()+ "--" + (event_date.getMonth()+1) + "--" + event_date.getDate();
+			document.getElementById("event_title").innerHTML = event_title;
+			document.getElementById("event_date").innerHTML = event_date;
+			document.getElementById("event_time").innerHTML = event_time;
+			document.getElementById("event_time").setAttribute('time', event_time);
+			document.getElementById("event_date").setAttribute('date', event_date);
+			document.getElementById("event_title").setAttribute('title', event_title);
+			document.getElementById("event_title").setAttribute('event_id', event_id);
+		}
+
+		//delete event
+		function deleteEventAjax(event) {
+			var event_id = document.getElementById("event_title").getAttribute('event_id');
+			console.log(event_id);
+			var data = "token=" + encodeURIComponent(document.getElementById('user_token').value) + "&event_id=" + encodeURIComponent(event_id);
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.open("POST", "deleteEvent.php", true);
+			xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			xmlHttp.addEventListener("load", function (event) {
+				var jsonData = JSON.parse(event.target.responseText);
+				if (jsonData.success) {
+					console.log("Event deleted");
+					updateCalendar();
+				} else {
+					console.log("Event not deleted");
+				}
+			}, false);
+			xmlHttp.send(data);
+		}
+		document.getElementById("deleteBtn").addEventListener("click", deleteEventAjax, false);
+
+
+		//Edit event
+		function editEventAjax(event) {
+			var event_id = document.getElementById("event_title").getAttribute('event_id');
+			var editTitle = document.getElementById("edit_title").value;
+			var editDate = document.getElementById("edit_date").value;
+			var editTime = document.getElementById("edit_time").value;
+			var date_string = String(editDate);
+			if (!checkDate(date_string)) {
+				alert("Wrong date format, try again!");
+				return;
+			}
+			var real_date = (new Date(date_string)).deltaDays(1);
+			console.log(event_id);
+
+			var data = "token=" + encodeURIComponent(document.getElementById('user_token').value) +"&event_id=" + encodeURIComponent(event_id) + "&year=" + encodeURIComponent(real_date.getFullYear()) + "&month=" + encodeURIComponent(real_date.getMonth() + 1) + "&day=" + encodeURIComponent(real_date.getDate()) + "&editTime=" + encodeURIComponent(editTime) + "&editTitle=" + encodeURIComponent(editTitle);
+
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.open("POST", "editEvent.php", true);
+			xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			xmlHttp.addEventListener("load", function (event) {
+				var jsonData = JSON.parse(event.target.responseText);
+				if (jsonData.success) {
+					console.log("Event editted");
+					updateCalendar();
+				} else {
+					console.log("Event not edited");
+				}
+			}, false);
+			xmlHttp.send(data);
+		}
+		document.getElementById("editBtn").addEventListener("click", editEventAjax, false);
+
+		//share an event
+		/*function shareEvent(event) {
+				var event_id = document.getElementById("event_title").getAttribute('event_id');
+				var share_user = document.getElementById("shareduser").value;
+
+				var dataString = "token=" + encodeURIComponent(document.getElementById("user_token").value)
+				+ "&event_id=" + encodeURIComponent(event_id) 
+				+ "&shareduser=" + encodeURIComponent(share_user);
+
+				var xmlHttp = new XMLHttpRequest();
+				xmlHttp.open("POST", "shareEvent.php", true);
+				xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+				xmlHttp.addEventListener("load", function(event){
+						var jsonData = JSON.parse(event.target.responseText);
+						if(jsonData.success){
+								alert("Event shared");
+								updateCalendar();
+						}else{
+								alert("Event was not shared " + jsonData.message);
+						}
+				}, false);
+				xmlHttp.send(dataString);
+		}
+		document.getElementById("submit_share_event").addEventListener("click", shareEvent, false);*/
+	</script>
+</body>
+
+</html>

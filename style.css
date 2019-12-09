@@ -1,0 +1,89 @@
+body{
+    background-color: rgb(245, 244, 244);
+}
+.header{
+    border-bottom: 1px solid #DFDFDF;
+    border: 1px solid red;
+    padding-top: 10px;
+    width: 100%;
+    height: 170px;
+    background-color: #ffffff;
+}
+
+.before#loginAttempt{
+    border: 1px solid red;
+    position: absolute;;
+    left: 5%;
+}
+
+.before#newUser{
+    border: 1px solid red;
+    position: absolute;;
+    left: 20%;
+}
+
+h1{
+    border: 1px solid red;
+    position: absolute;;
+    left: 35%;
+}
+
+.content {
+    border: 1px solid blue;
+    display: grid;
+    width: 100%;
+    height: 680px;
+    grid-template-columns: 1fr 4fr;
+    grid-gap: 20px;
+    position: absolute;
+}
+
+.content .after{
+    border: 1px solid red;
+    position: relative;
+    margin-left:20px;
+}
+
+.content .calendar{
+    border: 1px solid red;
+    position: relative;
+    width: 1400px;
+}
+
+#preBtn {
+    position: absolute;
+    margin-left:10%;
+}
+
+#nextBtn {
+    position: absolute;
+    margin-left:80%;
+}
+#month {
+    position: absolute;
+    margin-left:45%;
+}
+
+table {
+    border-collapse: collapse;
+    border: 1px solid black;
+    margin-top: 5%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+th{
+        width: 100px;
+        border: 1px solid black;
+        font-family: Helvetica;
+
+}
+td{
+        border: 1px solid black;
+        height: 100px;
+        vertical-align: top;
+}
+
+.cell {
+	font-family: Helvetica;
+}
