@@ -1,35 +1,40 @@
 body{
     background-color: rgb(245, 244, 244);
+    
+    background-image: url('nature-forest-trees-fog-4827.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
 }
 .header{
-    border-bottom: 1px solid #DFDFDF;
-    border: 1px solid red;
+    
+    
     padding-top: 10px;
     width: 100%;
     height: 170px;
-    background-color: #ffffff;
+    
 }
 
 .before#loginAttempt{
-    border: 1px solid red;
+    
     position: absolute;;
     left: 5%;
 }
 
 .before#newUser{
-    border: 1px solid red;
+    
     position: absolute;;
     left: 20%;
 }
 
 h1{
-    border: 1px solid red;
+    
     position: absolute;;
     left: 35%;
 }
 
 .content {
-    border: 1px solid blue;
+    
     display: grid;
     width: 100%;
     height: 680px;
@@ -39,13 +44,13 @@ h1{
 }
 
 .content .after{
-    border: 1px solid red;
+    
     position: relative;
     margin-left:20px;
 }
 
 .content .calendar{
-    border: 1px solid red;
+    
     position: relative;
     width: 1400px;
 }
@@ -70,6 +75,7 @@ table {
     margin-top: 5%;
     margin-left: auto;
     margin-right: auto;
+    background: white;
 }
 
 th{
@@ -86,4 +92,8 @@ td{
 
 .cell {
 	font-family: Helvetica;
+}
+
+#guide {
+
 }
