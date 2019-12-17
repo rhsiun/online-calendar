@@ -72,20 +72,23 @@ h1{
 table {
     border-collapse: collapse;
     border: 1px solid black;
+    border-radius: 2px;
     margin-top: 5%;
     margin-left: auto;
     margin-right: auto;
-    background: white;
+    background:rgba(255,255,255,0.5);;
 }
 
 th{
         width: 100px;
         border: 1px solid black;
+        border-radius: 2px;
         font-family: Helvetica;
 
 }
 td{
         border: 1px solid black;
+        border-radius: 2px;
         height: 100px;
         vertical-align: top;
 }
